@@ -26,10 +26,14 @@
           <div class="nav-collapse">
             <ul class="nav">
               <li class="active"><a href="/">首頁</a></li>
-                  <li><a href="/login">登入</a></li>
+                  <% if(!isLogin) {%>
+                      <li><a href="/login">登入</a></li>
+                  <% } %>
                   <li><a href="/reg">注册</a></li>
-
-                  <li><a href="/logout">登出</a></li>
+                  <li><a href="/post">寫博客</a></li>
+                  <% if(isLogin){ %>
+                      <li><a href="/logout">登出</a></li>
+                  <% } %>
 
             </ul>
           </div>

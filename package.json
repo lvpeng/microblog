@@ -12,5 +12,6 @@
     , "mongodb": "*"
     , "connect-mongo": "*"
     , "connect-flash":"*"
+    , "mongoose" : "3.8.0"
   }
 }

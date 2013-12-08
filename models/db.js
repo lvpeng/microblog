@@ -6,14 +6,19 @@
  * To change this template use File | Settings | File Templates.
  */
 
-var settings = require('../settings'),
-    Db = require('mongodb').Db,
-    MongoClient = require('mongodb').MongoClient,
-    Server = require('mongodb').Server,
-    Connection = require('mongodb').Connection;
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/microblog');
 
-//module.exports = new Db('microblog', new Server('localhost', 27017));
-module.exprots = new Db(settings.db, new Server(settings.host,Connection.DEFAULT_PORT));
+module.exports = mongoose;
+
+//var settings = require('../settings'),
+//    Db = require('mongodb').Db,
+//    MongoClient = require('mongodb').MongoClient,
+//    Server = require('mongodb').Server,
+//    Connection = require('mongodb').Connection;
+//
+////module.exports = new Db('microblog', new Server('localhost', 27017));
+//module.exprots = new Db(settings.db, new Server(settings.host,Connection.DEFAULT_PORT));
 
 
 

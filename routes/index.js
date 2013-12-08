@@ -2,11 +2,13 @@
  * GET home page.
  */
 var crypto = require('crypto');
-var User = require('../models/user.js');
-var Blog = require('../models/blog.js');
+//var User = require('../models/user.js');
+var User = require('../models/users.js');
+//var Blog = require('../models/blog.js');
+var Blog = require('../models/blogs.js');
 
 exports.index = function(req, res){
-    res.render("index",{'title':"Express","success":req.flash('succ'),'error':req.flash('err')});
+    res.render("index",{'title':"Express","success":req.flash('succ'),'error':req.flash('err'),'isLogin':req.session.user});
 };
 
 //exports.user = function(req,res){
@@ -14,44 +16,61 @@ exports.index = function(req, res){
 //};
 
 exports.user = function(req,res){
-    //res.render("userIndex",{'title':"個人首頁","success":req.flash('succ'),'error':req.flash('err')});
+    //res.render("userIndex",{'title':"個人首頁","success":req.flash('succ'),'error':req.flash('err'),'isLogin':req.session.user});
+//
+//    User.get(req.params.user, function(err,user){
+//        if(!user){
+//            req.flash('err', '用戶不存在');
+//            return res.redirect('/');
+//        }
+//        //get url中 user.name = username 的 所有 blogs
+//        Blog.get(user.name, function(err,blogs){
+//            if (err) {
+//                req.flash('err', err);
+//                return res.redirect('/');
+//            }
+////             for(var i =0 ;i<blogs.length;i++){
+////                 console.log(blogs[i]);
+////             }
+//            res.render('blogs', {
+//                title: user.name,
+//                blogs: blogs,
+//                success:req.flash('succ'),
+//                error:req.flash('err'),
+//                'isLogin':req.session.user
+//            });
+//
+//        });
+//    });
 
-    User.get(req.params.user, function(err,user){
-        if(!user){
-            req.flash('err', '用戶不存在');
-            return res.redirect('/');
-        }
-        //get url中 user.name = username 的 所有 blogs
-        Blog.get(user.name, function(err,blogs){
-            if (err) {
+      User.findOne({name:req.params.user},function(err,user){
+          if(!user){
+              req.flash('err', '用戶不存在');
+              return res.redirect('/reg');
+          }
+          Blog.find({username:user.name}, function(err,blogs){
+              if(err){
                 req.flash('err', err);
                 return res.redirect('/');
-            }
-//             for(var i =0 ;i<blogs.length;i++){
-//                 console.log(blogs[i]);
-//             }
-            res.render('blogs', {
+              }
+              res.render('blogs', {
                 title: user.name,
                 blogs: blogs,
                 success:req.flash('succ'),
-                error:req.flash('err')
+                error:req.flash('err'),
+                isLogin:req.session.user
+
             });
-
-        });
-    });
-//    var htmlStr = "<html><body><table><tr><td>Title:</td><td>Content:</td></tr>";
-//    for(var i =0; i< blogs.length; i++){
-//        htmlStr += "<tr><td>" +  blogs[i].title +"</td><td>" + blogs[i].content + "</td></tr>";
-//    }
-//    htmlStr += "</table></body></html>";
-//    res.send(htmlStr);
-
-
-
+          })
+      });
 };
 
 exports.post = function(req,res){
-    res.render("post",{'title':"寫博客","success":req.flash('succ'),'error':req.flash('err')});
+    //console.log(req.session.user);
+    if(!req.session.user){
+        req.flash('err','你還沒有登錄，請先登錄：）');
+    }
+    res.render("post",{'title':"寫博客","success":req.flash('succ'),'error':req.flash('err'),'isLogin':req.session.user});
 };
 exports.doPost = function(req,res){
     var currentUserName = req.session.user.name;
@@ -73,7 +92,7 @@ exports.doPost = function(req,res){
     var blog = new Blog(newBlog);
 
     //console.dir(blog);
-    blog.save(blog,function(err){
+    blog.save(function(err,blog){
         if(err){
            req.flash('err',err.message);
            res.redirect('/');
@@ -84,7 +103,7 @@ exports.doPost = function(req,res){
 };
 
 exports.reg = function(req,res){
-    res.render('reg',{"title":"用戶註冊","success":req.flash('succ'),"error":req.flash('err')});
+    res.render('reg',{"title":"用戶註冊","success":req.flash('succ'),"error":req.flash('err'),'isLogin':req.session.user});
 };
 
 exports.doReg = function(req,res){
@@ -103,7 +122,7 @@ exports.doReg = function(req,res){
     });
 
     //檢驗用戶是否已存在
-    User.get(newUser.name,function(user){
+    User.findOne({name:newUser.name},function(err,user){
         //如果存在,錯誤提示“用戶已經存在”，跳轉到登錄頁面
         if(user){
             req.flash('err','當前用戶已經存在，請直接登錄！');
@@ -112,7 +131,7 @@ exports.doReg = function(req,res){
         //如果不存在,將記錄 User.save 存入
         else{
             //console.log(newUser);
-            newUser.save(newUser,function(err){
+            newUser.save(function(err,newUser){
                 if(err){
                     req.flash('err',err);
                     return res.redirect('/reg');
@@ -133,7 +152,7 @@ exports.chkNotLogin = function(req,res,next){
     next();
 };
 exports.login = function(req,res){
-    res.render('login.ejs',{'title': '用戶登入',"success":req.flash('succ'),'error':req.flash('err')});
+    res.render('login.ejs',{'title': '用戶登入',"success":req.flash('succ'),'error':req.flash('err'),'isLogin':req.session.user});
 };
 
 exports.doLogin = function(req,res){
@@ -146,7 +165,7 @@ exports.doLogin = function(req,res){
         password: password
     });
     //驗證用戶是否存在
-    User.get(user.name,function(err,result){
+    User.findOne({name:user.name},function(err,result){
         //console.log(user.name);
         if(!result){
             req.flash('err','用戶不存在!');
@@ -158,7 +177,7 @@ exports.doLogin = function(req,res){
         }
         req.session.user = user;
         req.flash('succ','登錄成功！');
-        res.redirect('/');
+        res.redirect('/u/'+user.name);
 
     });
 
